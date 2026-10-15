@@ -15,6 +15,7 @@ export function HeroPreview() {
   const [t, setT] = useState(0);
   const [dur, setDur] = useState(8);
   const [playing, setPlaying] = useState(true);
+  const [videoReady, setVideoReady] = useState(false);
 
   useEffect(() => {
     let raf = 0;
@@ -37,18 +38,27 @@ export function HeroPreview() {
           <video
             ref={ref}
             src={creatorVideo.url}
-            poster={poster}
             autoPlay
             muted
             loop
             playsInline
             preload="metadata"
+            onLoadedData={() => setVideoReady(true)}
+            onError={() => setVideoReady(false)}
             onLoadedMetadata={(e) => setDur(e.currentTarget.duration || 8)}
             className="absolute inset-0 size-full object-cover"
             aria-label="Female content creator speaking to camera in a vertical video"
           />
+          <img
+            src={poster}
+            alt=""
+            aria-hidden="true"
+            className={`absolute inset-0 size-full object-cover ${videoReady ? "hidden" : ""}`}
+          />
           <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3">
-            <span className="rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold backdrop-blur">9:16 · Reel</span>
+            <span className="rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold backdrop-blur">
+              9:16 · Reel
+            </span>
             <span className="flex items-center gap-1 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold backdrop-blur">
               <span className="size-1.5 animate-pulse rounded-full bg-destructive" /> Editing
             </span>
@@ -56,8 +66,20 @@ export function HeroPreview() {
           {/* Caption with editor selection box */}
           <div className="absolute inset-x-[8%] top-[64%]">
             <div className="relative border-2 border-primary px-2 py-3">
-              {(["-left-1.5 -top-1.5", "-right-1.5 -top-1.5", "-left-1.5 -bottom-1.5", "-right-1.5 -bottom-1.5", "left-1/2 -top-1.5 -ml-1.5", "left-1/2 -bottom-1.5 -ml-1.5", "top-1/2 -left-1.5 -mt-1.5", "top-1/2 -right-1.5 -mt-1.5"]).map((p) => (
-                <span key={p} className={`absolute size-3 rounded-[3px] border-2 border-primary bg-card ${p}`} />
+              {[
+                "-left-1.5 -top-1.5",
+                "-right-1.5 -top-1.5",
+                "-left-1.5 -bottom-1.5",
+                "-right-1.5 -bottom-1.5",
+                "left-1/2 -top-1.5 -ml-1.5",
+                "left-1/2 -bottom-1.5 -ml-1.5",
+                "top-1/2 -left-1.5 -mt-1.5",
+                "top-1/2 -right-1.5 -mt-1.5",
+              ].map((p) => (
+                <span
+                  key={p}
+                  className={`absolute size-3 rounded-[3px] border-2 border-primary bg-card ${p}`}
+                />
               ))}
               <motion.p
                 key={line.text}
@@ -65,7 +87,12 @@ export function HeroPreview() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.35 }}
                 className="text-center text-[26px] font-black uppercase leading-[1.05] text-white sm:text-[30px]"
-                style={{ fontFamily: "Montserrat", WebkitTextStroke: "6px #000", paintOrder: "stroke fill", textShadow: "0 3px 12px rgba(0,0,0,.6)" }}
+                style={{
+                  fontFamily: "Montserrat",
+                  WebkitTextStroke: "6px #000",
+                  paintOrder: "stroke fill",
+                  textShadow: "0 3px 12px rgba(0,0,0,.6)",
+                }}
               >
                 {line.text} <span style={{ color: "#c6f432" }}>{line.hl}</span>
               </motion.p>
@@ -79,7 +106,13 @@ export function HeroPreview() {
               onClick={() => {
                 const v = ref.current;
                 if (!v) return;
-                if (v.paused) { v.play(); setPlaying(true); } else { v.pause(); setPlaying(false); }
+                if (v.paused) {
+                  v.play();
+                  setPlaying(true);
+                } else {
+                  v.pause();
+                  setPlaying(false);
+                }
               }}
               aria-label={playing ? "Pause preview" : "Play preview"}
               className="grid size-6 place-items-center rounded-full bg-primary text-primary-foreground"
@@ -87,19 +120,27 @@ export function HeroPreview() {
               {playing ? <Pause className="size-3" /> : <Play className="size-3" />}
             </button>
             <span className="tabular-nums">0:{Math.floor(t).toString().padStart(2, "0")}</span>
-            <span className="ml-auto flex items-center gap-1"><Type className="size-3" /> 3 captions</span>
+            <span className="ml-auto flex items-center gap-1">
+              <Type className="size-3" /> 3 captions
+            </span>
           </div>
           <div className="relative h-7">
             {LINES.map((l, i) => (
               <div
                 key={i}
                 className={`absolute top-0 h-full rounded-md border text-[9px] font-semibold leading-7 transition ${line === l ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"}`}
-                style={{ left: `${(l.at / dur) * 100}%`, width: `calc(${(2.6 / dur) * 100}% - 3px)` }}
+                style={{
+                  left: `${(l.at / dur) * 100}%`,
+                  width: `calc(${(2.6 / dur) * 100}% - 3px)`,
+                }}
               >
                 <span className="block truncate px-1.5">{l.hl}</span>
               </div>
             ))}
-            <div className="pointer-events-none absolute -bottom-1 -top-1 w-0.5 rounded bg-foreground" style={{ left: `${pct}%` }} />
+            <div
+              className="pointer-events-none absolute -bottom-1 -top-1 w-0.5 rounded bg-foreground"
+              style={{ left: `${pct}%` }}
+            />
           </div>
         </div>
       </div>
